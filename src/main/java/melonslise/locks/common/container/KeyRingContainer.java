@@ -1,31 +1,31 @@
 package melonslise.locks.common.container;
 
-import java.util.function.Consumer;
-
+import melonslise.locks.common.components.interfaces.IItemHandler;
+import melonslise.locks.common.init.LocksComponents;
 import melonslise.locks.common.init.LocksContainerTypes;
 import melonslise.locks.common.init.LocksSoundEvents;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.Hand;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraftforge.fml.network.IContainerFactory;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
-public class KeyRingContainer extends Container
+import java.util.function.Consumer;
+
+public class KeyRingContainer extends AbstractContainerMenu
 {
-	public static class KeyRingSlot extends SlotItemHandler
+	public static class KeyRingSlot extends Slot
 	{
-		public final PlayerEntity player;
+		public final Player player;
 
-		public KeyRingSlot(PlayerEntity player, IItemHandler inv, int index, int x, int y)
+		public KeyRingSlot(Player player, IItemHandler inv, int index, int x, int y)
 		{
 			super(inv, index, x, y);
 			this.player = player;
@@ -36,16 +36,16 @@ public class KeyRingContainer extends Container
 		public void set(ItemStack stack)
 		{
 			super.set(stack);
-			if(!this.player.level.isClientSide)
-				this.player.level.playSound(null, this.player.getX(), this.player.getY(), this.player.getZ(), LocksSoundEvents.KEY_RING.get(), SoundCategory.PLAYERS, 1f, 1f);
+			if(!this.player.level().isClientSide)
+				this.player.level().playSound(null, this.player.getX(), this.player.getY(), this.player.getZ(), LocksSoundEvents.KEY_RING, SoundSource.PLAYERS, 1f, 1f);
 		}
 
 		@Override
-		public ItemStack onTake(PlayerEntity player, ItemStack stack)
+		public void onTake(Player player, ItemStack stack)
 		{
-			if(!this.player.level.isClientSide)
-				this.player.level.playSound(null, this.player.getX(), this.player.getY(), this.player.getZ(), LocksSoundEvents.KEY_RING.get(), SoundCategory.PLAYERS, 1f, 1f);
-			return super.onTake(player, stack);
+			if(!this.player.level().isClientSide)
+				this.player.level().playSound(null, this.player.getX(), this.player.getY(), this.player.getZ(), LocksSoundEvents.KEY_RING, SoundSource.PLAYERS, 1f, 1f);
+			super.onTake(player, stack);
 		}
 	}
 
@@ -53,11 +53,11 @@ public class KeyRingContainer extends Container
 	public final IItemHandler inv;
 	public final int rows;
 
-	public KeyRingContainer(int id, PlayerEntity player, ItemStack stack)
+	public KeyRingContainer(int id, Player player, ItemStack stack)
 	{
-		super(LocksContainerTypes.KEY_RING.get(), id);
+		super(LocksContainerTypes.KEY_RING, id);
 		this.stack = stack;
-		this.inv = stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
+		this.inv = LocksComponents.ITEM_HANDLER.get(stack);
 
 		this.rows = inv.getSlots() / 9;
 		for(int row = 0; row < rows; ++row)
@@ -67,20 +67,20 @@ public class KeyRingContainer extends Container
 		int offset = (rows - 4) * 18;
 		for(int row = 0; row < 3; ++row)
 			for (int col = 0; col < 9; ++col)
-				this.addSlot(new Slot(player.inventory, col + row * 9 + 9, 8 + col * 18, 103 + row * 18 + offset));
+				this.addSlot(new Slot(player.getInventory(), col + row * 9 + 9, 8 + col * 18, 103 + row * 18 + offset));
 
 		for(int coll = 0; coll < 9; ++coll)
-			this.addSlot(new Slot(player.inventory, coll, 8 + coll * 18, 161 + offset));
+			this.addSlot(new Slot(player.getInventory(), coll, 8 + coll * 18, 161 + offset));
 	}
 
 	@Override
-	public boolean stillValid(PlayerEntity player)
+	public boolean stillValid(Player player)
 	{
 		return !this.stack.isEmpty();
 	}
 
 	@Override
-	public ItemStack quickMoveStack(PlayerEntity player, int index)
+	public ItemStack quickMoveStack(Player player, int index)
 	{
 		ItemStack stack = ItemStack.EMPTY;
 		Slot slot = this.slots.get(index);
@@ -102,12 +102,12 @@ public class KeyRingContainer extends Container
 		return stack;
 	}
 
-	public static final IContainerFactory<KeyRingContainer> FACTORY = (id, inv, buffer) ->
+	public static final ExtendedScreenHandlerType.ExtendedFactory<KeyRingContainer> FACTORY = (id, inv, buffer) ->
 	{
-		return new KeyRingContainer(id, inv.player, inv.player.getItemInHand(buffer.readEnum(Hand.class)));
+		return new KeyRingContainer(id, inv.player, inv.player.getItemInHand(buffer.readEnum(InteractionHand.class)));
 	};
 
-	public static class Provider implements INamedContainerProvider
+	public static class Provider implements ExtendedScreenHandlerFactory
 	{
 		public final ItemStack stack;
 
@@ -117,29 +117,34 @@ public class KeyRingContainer extends Container
 		}
 
 		@Override
-		public Container createMenu(int id, PlayerInventory inv, PlayerEntity player)
+		public AbstractContainerMenu createMenu(int id, Inventory inv, Player player)
 		{
 			return new KeyRingContainer(id, player, this.stack);
 		}
 
 		@Override
-		public ITextComponent getDisplayName()
+		public Component getDisplayName()
 		{
 			return this.stack.getHoverName();
 		}
+
+		@Override
+		public void writeScreenOpeningData(ServerPlayer serverPlayer, FriendlyByteBuf friendlyByteBuf) {
+			friendlyByteBuf.writeEnum(InteractionHand.MAIN_HAND);
+		}
 	}
 
-	public static class Writer implements Consumer<PacketBuffer>
+	public static class Writer implements Consumer<FriendlyByteBuf>
 	{
-		public final Hand hand;
+		public final InteractionHand hand;
 
-		public Writer(Hand hand)
+		public Writer(InteractionHand hand)
 		{
 			this.hand = hand;
 		}
 
 		@Override
-		public void accept(PacketBuffer buffer)
+		public void accept(FriendlyByteBuf buffer)
 		{
 			buffer.writeEnum(this.hand);
 		}

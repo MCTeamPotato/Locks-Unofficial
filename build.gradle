@@ -1,99 +1,87 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-		maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
-		classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
-    }
+plugins {
+	id 'idea'
+	id 'fabric-loom' version '1.8-SNAPSHOT'
+	id 'maven-publish'
 }
 
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
+base {
+	archivesName = "${mod_id}-fabric-${mod_version}"
+}
 
-version = '3.0.3'
-group = 'melonslise.locks'
-archivesBaseName = 'locks'
+java {
+	toolchain.languageVersion = JavaLanguageVersion.of(17)
+}
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
-
-minecraft {
-	mappings channel: 'official', version: '1.16.5'
-    
-	accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-
-	runs {
-		client {
-			workingDirectory project.file('run')
-
-			arg "-mixin.config=" + archivesBaseName + ".mixins.json"
-
-			property 'forge.logging.console.level', 'info'
-
-			mods {
-				locks {
-					source sourceSets.main
-				}
-			}
-		}
-
-		server {
-			workingDirectory project.file('run')
-
-			arg "-mixin.config=" + archivesBaseName + ".mixins.json"
-
-			property 'forge.logging.console.level', 'info'
-
-			mods {
-				locks {
-					source sourceSets.main
-				}
-			}
-		}
-
-		data {
-			workingDirectory project.file('run')
-
-			property 'forge.logging.console.level', 'info'
-
-			args '--mod', 'locks', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-
-			mods {
-				locks {
-					source sourceSets.main
-				}
-			}
-		}
+repositories {
+	maven {
+		url = "https://www.cursemaven.com"
+	}
+	maven {
+		name = 'Ladysnake Mods'
+		url = 'https://maven.ladysnake.org/releases'
 	}
 }
 
-sourceSets.main.resources { srcDir 'src/generated/resources' }
+loom{
+
+	accessWidenerPath = file("src/main/resources/locks.accesswidener")
+}
+
 
 dependencies {
-	minecraft 'net.minecraftforge:forge:1.16.5-36.1.4'
-	annotationProcessor 'org.spongepowered:mixin:0.8:processor'
+
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings loom.officialMojangMappings()
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	compileOnly "curse.maven:lootr-fabric-615106:5639247"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}"
+	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-item:${project.cca_version}"
+	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cca_version}"
+	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-world:${project.cca_version}"
+	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-chunk:${project.cca_version}"
+	modImplementation "curse.maven:forge-config-api-port-fabric-547434:4583000"
+	//modImplementation "curse.maven:cloth-config-348521:5729104"
+}
+
+processResources {
+	inputs.property "version", project.version
+	inputs.property "minecraft_version", project.minecraft_version
+	inputs.property "loader_version", project.loader_version
+	filteringCharset "UTF-8"
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version,
+				"minecraft_version": project.minecraft_version,
+				"loader_version": project.loader_version
+	}
+}
+
+def targetJavaVersion = 17
+tasks.withType(JavaCompile).configureEach {
+	// ensure that the encoding is set to UTF-8, no matter what the system default is
+	// this fixes some edge cases with special characters not displaying correctly
+	// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+	// If Javadoc is generated, this must be specified in that task too.
+	it.options.encoding = "UTF-8"
+	if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+		it.options.release.set(targetJavaVersion)
+	}
+}
+
+java {
+	def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+	if (JavaVersion.current() < javaVersion) {
+		toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+	}
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this line, sources will not be generated.
+	withSourcesJar()
 }
 
 jar {
-	manifest {
-		attributes([
-			"Specification-Title": archivesBaseName,
-			"Specification-Vendor": "melonslise",
-			"Specification-Version": version,
-			"Implementation-Title": archivesBaseName,
-			"Implementation-Version": version,
-			"Implementation-Vendor" :"melonslise",
-			"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-			"MixinConfigs": archivesBaseName + ".mixins.json"
-		])
+	from("LICENSE") {
+		rename { "${it}_${project.archivesBaseName}" }
 	}
-}
-
-apply plugin: 'org.spongepowered.mixin'
-
-mixin {
-    add sourceSets.main, archivesBaseName + ".refmap.json"
 }

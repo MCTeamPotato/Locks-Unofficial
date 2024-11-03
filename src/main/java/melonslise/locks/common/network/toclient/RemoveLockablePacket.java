@@ -1,42 +1,44 @@
 package melonslise.locks.common.network.toclient;
 
-import java.util.function.Supplier;
+import melonslise.locks.Locks;
+import melonslise.locks.common.init.LocksComponents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.FabricPacket;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.PacketType;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 
-import melonslise.locks.common.init.LocksCapabilities;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+public class RemoveLockablePacket implements FabricPacket {
+    public static final ResourceLocation ID = new ResourceLocation(Locks.ID, "remove_lockable");
+    private final int id;
 
-public class RemoveLockablePacket
-{
-	private final int id;
+    public static final PacketType<RemoveLockablePacket> TYPE = PacketType.create(ID, RemoveLockablePacket::new);
 
-	public RemoveLockablePacket(int id)
-	{
-		this.id = id;
-	}
+    public static class Handler implements ClientPlayNetworking.PlayPacketHandler<RemoveLockablePacket>{
+        @Override
+        public void receive(RemoveLockablePacket pkt, LocalPlayer localPlayer, PacketSender packetSender) {
+            LocksComponents.LOCKABLE_HANDLER.get(localPlayer.level()).remove(pkt.id);
+        }
+    }
+    @Override
+    public void write(FriendlyByteBuf buf) {
 
-	public static RemoveLockablePacket decode(PacketBuffer buf)
-	{
-		return new RemoveLockablePacket(buf.readInt());
-	}
+        buf.writeInt(this.id);
+    }
 
-	public static void encode(RemoveLockablePacket pkt, PacketBuffer buf)
-	{
-		buf.writeInt(pkt.id);
-	}
+    @Override
+    public PacketType<?> getType() {
+        return TYPE;
+    }
 
-	public static void handle(RemoveLockablePacket pkt, Supplier<NetworkEvent.Context> ctx)
-	{
-		// Use runnable, lambda causes issues with class loading
-		ctx.get().enqueueWork(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				Minecraft.getInstance().level.getCapability(LocksCapabilities.LOCKABLE_HANDLER).ifPresent(handler -> handler.remove(pkt.id));
-			}
-		});
-		ctx.get().setPacketHandled(true);
-	}
+    public RemoveLockablePacket(int id) {
+        this.id = id;
+    }
+
+    public RemoveLockablePacket(FriendlyByteBuf buf) {
+        this(buf.readInt());
+    }
+
 }

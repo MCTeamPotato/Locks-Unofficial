@@ -1,10 +1,10 @@
 package melonslise.locks.client.gui.sprite.action;
 
 import melonslise.locks.client.gui.sprite.Sprite;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public class AccelerateAction<S extends Sprite> extends MoveAction<S>
 {
 	public float accelX, accelY;

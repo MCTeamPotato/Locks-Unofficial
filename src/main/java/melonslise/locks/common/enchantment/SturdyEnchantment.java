@@ -1,14 +1,21 @@
 package melonslise.locks.common.enchantment;
 
-import melonslise.locks.common.init.LocksEnchantments;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.inventory.EquipmentSlotType;
+import melonslise.locks.common.item.LockItem;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentCategory;
 
 public class SturdyEnchantment extends Enchantment
 {
 	public SturdyEnchantment()
 	{
-		super(Rarity.RARE, LocksEnchantments.LOCK_TYPE, new EquipmentSlotType[] { EquipmentSlotType.MAINHAND });
+		super(Rarity.RARE,  EnchantmentCategory.BREAKABLE, new EquipmentSlot[] { EquipmentSlot.MAINHAND });
+	}
+
+	@Override
+	public boolean canEnchant(ItemStack itemStack) {
+		return itemStack.getItem() instanceof LockItem;
 	}
 
 	@Override

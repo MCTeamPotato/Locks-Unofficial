@@ -1,7 +1,7 @@
 package melonslise.locks.common.util;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 
 public class LockableInfo
 {
@@ -20,18 +20,18 @@ public class LockableInfo
 		this.id = id;
 	}
 
-	public static LockableInfo fromNbt(CompoundNBT nbt)
+	public static LockableInfo fromNbt(CompoundTag nbt)
 	{
 		return new LockableInfo(Cuboid6i.fromNbt(nbt.getCompound(Lockable.KEY_BB)), Lock.fromNbt(nbt.getCompound(Lockable.KEY_LOCK)), Transform.values()[(int) nbt.getByte(Lockable.KEY_TRANSFORM)], ItemStack.of(nbt.getCompound(Lockable.KEY_STACK)), nbt.getInt(Lockable.KEY_ID));
 	}
 
-	public static CompoundNBT toNbt(LockableInfo lkb)
+	public static CompoundTag toNbt(LockableInfo lkb)
 	{
-		CompoundNBT nbt = new CompoundNBT();
+		CompoundTag nbt = new CompoundTag();
 		nbt.put(Lockable.KEY_BB, Cuboid6i.toNbt(lkb.bb));
 		nbt.put(Lockable.KEY_LOCK, Lock.toNbt(lkb.lock));
 		nbt.putByte(Lockable.KEY_TRANSFORM, (byte) lkb.tr.ordinal());
-		nbt.put(Lockable.KEY_STACK, lkb.stack.serializeNBT());
+		nbt.put(Lockable.KEY_STACK, lkb.stack.save(new CompoundTag()));
 		nbt.putInt(Lockable.KEY_ID, lkb.id);
 		return nbt;
 	}

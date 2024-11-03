@@ -1,0 +1,15 @@
+{
+  "required": false,
+  "package": "melonslise.locks.mixin.compact",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "locks.refmap.json",
+  "mixins": [
+    "LootrMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}
