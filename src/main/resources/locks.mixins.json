@@ -16,6 +16,7 @@
     "PistonBlockMixin",
     "PistonBlockStructureHelperMixin",
     "PlayerTickMixin",
+    "RandomizableContainerBlockEntityMixin",
     "ServerWorldMixin",
     "WorldMixin",
     "accessor.LootPoolAccessor",

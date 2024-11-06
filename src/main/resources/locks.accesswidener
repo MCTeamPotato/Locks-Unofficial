@@ -19,5 +19,5 @@ accessible method net/minecraft/client/multiplayer/ClientChunkCache$Storage getI
 accessible method net/minecraft/client/multiplayer/ClientChunkCache$Storage inRange (II)Z
 accessible method net/minecraft/client/multiplayer/ClientChunkCache$Storage getChunk (I)Lnet/minecraft/world/level/chunk/LevelChunk;
 accessible field net/minecraft/server/players/PlayerList players Ljava/util/List;
-
+accessible method net/minecraft/world/level/block/entity/RandomizableContainerBlockEntity getItems ()Lnet/minecraft/core/NonNullList;
 
