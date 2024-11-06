@@ -14,6 +14,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.EmptyLevelChunk;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 public class AddLockableToChunkPacket implements FabricPacket {
@@ -26,8 +28,10 @@ public class AddLockableToChunkPacket implements FabricPacket {
     public static class Handler implements ClientPlayNetworking.PlayPacketHandler<AddLockableToChunkPacket>{
         @Override
         public void receive(AddLockableToChunkPacket pkt, LocalPlayer localPlayer, PacketSender packetSender) {
-            ILockableStorage st = LocksComponents.LOCKABLE_STORAGE.get(localPlayer.level().getChunk(pkt.x, pkt.z));
-            ILockableHandler handler = LocksComponents.LOCKABLE_HANDLER.get(localPlayer.level());
+            Level level = localPlayer.level();
+            if(level.getChunk(pkt.x, pkt.z) instanceof EmptyLevelChunk) return;
+            ILockableStorage st = LocksComponents.LOCKABLE_STORAGE.get(level.getChunk(pkt.x, pkt.z));
+            ILockableHandler handler = LocksComponents.LOCKABLE_HANDLER.get(level);
             Int2ObjectMap<Lockable> lkbs = handler.getLoaded();
             Lockable lkb = lkbs.get(pkt.lockable.id);
             if (lkb == lkbs.defaultReturnValue()) {

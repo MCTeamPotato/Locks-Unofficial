@@ -1,6 +1,7 @@
 package melonslise.locks.common.config;
 
 import com.google.common.collect.Lists;
+import melonslise.locks.Locks;
 import melonslise.locks.common.util.LocksUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -9,6 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.List;
@@ -46,7 +48,7 @@ public final class LocksConfig {
         GEN_LOCKABLE_BLOCKS = cfg
                 .comment("Blocks that can be locked during the world generation")
                 .comment("当世界生成时锁定的方块")
-                .defineList("Lockable Generated Blocks", Lists.newArrayList("minecraft:chest", "minecraft:barrel", "lootr:.*"), e -> e instanceof String);
+                .defineList("Lockable Generated Blocks", Lists.newArrayList("minecraft:chest", "minecraft:barrel", "lootr:.*", "quark:.*_chest"), e -> e instanceof String);
         GENERATED_LOCKS = cfg
                 .comment("Items that can be generated as locks (must be instance of LockItem in code!)")
                 .comment("可以作为锁生成的物品（在代码中必须是 LockItem 的实例！）")
@@ -84,7 +86,7 @@ public final class LocksConfig {
         return random && matchString(block);
     }
 
-    public static boolean matchString(Block block){
+    public static boolean matchString(Block block) {
         String name = BuiltInRegistries.BLOCK.getKey(block).toString();
         if(lockableGenBlocks==null){
             init();

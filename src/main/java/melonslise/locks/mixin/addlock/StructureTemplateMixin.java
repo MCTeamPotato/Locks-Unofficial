@@ -90,27 +90,4 @@ public class StructureTemplateMixin {
         for (int a = 0, b = list.size(); a < b; ++a)
             this.lockableInfos.add(LockableInfo.fromNbt(list.getCompound(a)));
     }
-    @Inject(method = "placeInWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/ServerLevelAccessor;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z", ordinal = 1, shift = At.Shift.AFTER))
-    public void lockBlock(ServerLevelAccessor levelAccessor, BlockPos blockPos, BlockPos blockPos2, StructurePlaceSettings structurePlaceSettings,
-                          RandomSource pRandom, int i, CallbackInfoReturnable<Boolean> cir) {
-        if (levelAccessor.hasChunk(blockPos.getX() >> 4, blockPos.getZ() >> 4)){
-            Block block = levelAccessor.getBlockState(blockPos).getBlock();
-            if (LocksConfig.canGen(pRandom, block)) {
-                LocksUtil.lockWhenGen(levelAccessor, blockPos, RandomSource.create());
-            }
-        }
-    }
-
-    @Inject(method = "placeInWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/ServerLevelAccessor;blockUpdated(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;)V", shift = At.Shift.AFTER))
-    public void lockShape(ServerLevelAccessor levelAccessor, BlockPos blockPos, BlockPos blockPos2,
-                          StructurePlaceSettings structurePlaceSettings, RandomSource pRandom, int i,
-                          CallbackInfoReturnable<Boolean> cir
-    ) {
-        if (levelAccessor.hasChunk(blockPos.getX() >> 4, blockPos.getZ() >> 4)){
-            Block block = levelAccessor.getBlockState(blockPos).getBlock();
-            if (LocksConfig.canGen(pRandom, block)) {
-                LocksUtil.lockWhenGen(levelAccessor, blockPos, pRandom);
-            }
-        }
-    }
 }

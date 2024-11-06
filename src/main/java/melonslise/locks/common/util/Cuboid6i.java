@@ -105,6 +105,7 @@ public class Cuboid6i
 		return new Vec3((this.x1 + this.x2) * 0.5d, (this.y1 + this.y2) * 0.5d, (this.z1 + this.z2) * 0.5d);
 	}
 
+	// 检测两个立方体是否重叠
 	public boolean intersects(int x1, int y1, int z1, int x2, int y2, int z2)
 	{
 		return this.x1 < x2 && this.x2 >x1 && this.y1 < y2 && this.y2 > y1 && this.z1 < z2 && this.z2 > z1;

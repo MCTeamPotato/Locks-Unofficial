@@ -28,6 +28,8 @@ import static net.minecraft.world.level.block.state.properties.DoubleBlockHalf.L
 
     @Override
     public boolean place(@NotNull FeaturePlaceContext<NoneFeatureConfiguration> context) {
+        return true;
+        /*
         WorldGenLevel worldGenLevel = context.level();
         BlockPos blockPos = context.origin();
         RandomSource randomSource = context.random();
@@ -79,6 +81,7 @@ import static net.minecraft.world.level.block.state.properties.DoubleBlockHalf.L
             });
         }
         return true;
+         */
     }
 
 

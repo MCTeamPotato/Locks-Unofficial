@@ -21,7 +21,8 @@
     "accessor.LootPoolAccessor",
     "accessor.LootTableAccessor",
     "addlock.StructurePieceMixin",
-    "addlock.StructureTemplateMixin"
+    "addlock.StructureTemplateMixin",
+    "addlock.WorldGenRegionMixin"
   ],
   "client": [
     "ChunkCacheMixin",
