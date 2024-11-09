@@ -165,6 +165,8 @@ public final class LocksUtil {
             dir = state.getValue(FACING);
         } else if (state.hasProperty(HORIZONTAL_FACING)) {
             dir = state.getValue(HORIZONTAL_FACING);
+        } else {
+            return null;
         }
 
         if (state.hasProperty(CHEST_TYPE)) {
