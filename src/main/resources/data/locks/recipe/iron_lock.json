@@ -1,0 +1,24 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern":
+	[
+		" I ",
+		"ILI",
+		"III"
+	],
+	"key":
+	{
+		"I":
+		{
+			"tag": "c:ingots/iron"
+		},
+		"L":
+		{
+			"item": "locks:iron_lock_mechanism"
+		}
+	},
+	"result":
+	{
+		"id": "locks:iron_lock"
+	}
+}

@@ -1,33 +1,64 @@
 package melonslise.locks.common.util;
 
-import java.util.Observable;
-import java.util.Random;
-
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
 import melonslise.locks.common.item.LockItem;
 import melonslise.locks.common.item.LockingItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Lock extends Observable
 {
-	public final int id;
-	// index is the order, value is the pin number
-	protected final byte[] combo;
-	protected boolean locked;
+	public static final Codec<LockRecord> CODEC = RecordCodecBuilder.create(lockInstance ->
+			lockInstance.group(
+					Codec.INT.fieldOf("id").forGetter(LockRecord::id),
+					Codec.list(Codec.BYTE).fieldOf("combo").forGetter(LockRecord::combo),
+					Codec.BOOL.fieldOf("locked").forGetter(LockRecord::locked)
+			).apply(lockInstance, LockRecord::new)
+	);
+
+	public static final StreamCodec<ByteBuf,LockRecord> STREAM_CODEC = StreamCodec.composite(
+			ByteBufCodecs.INT,LockRecord::id,
+			ByteBufCodecs.fromCodec(Codec.list(Codec.BYTE)),LockRecord::combo,
+			ByteBufCodecs.BOOL,LockRecord::locked,
+			LockRecord::new
+	);
+
+	public record LockRecord(int id,List<Byte> combo,boolean locked){
+	}
+
+
+	public LockRecord lockRecord;
+//	public final int id;
+//	// index is the order, value is the pin number
+//	protected final byte[] combo;
+//	protected boolean locked;
 
 	//  TODO if lock is reshuffled any time other than during creation, then next time it is loaded it will have the initial combination and not the newly reshuffled one. Thankfully reshuffling like that does happen, but this should be changed if it does happen
 	public final Random rng;
 
+	public Lock(LockRecord lock)
+	{
+		this.lockRecord = lock;
+		this.rng = new Random(lock.id);
+	}
 	public Lock(int id, int length, boolean locked)
 	{
-		this.id = id;
 		this.rng = new Random(id);
-		this.combo = this.shuffle(length);
-		// this.lookup = this.inverse(this.combo);
-		this.locked = locked;
+		this.lockRecord = new LockRecord(id, this.shuffle(length), locked);
 	}
 
+	public static Lock gen(ItemStack stack)
+	{
+		return new Lock(LockingItem.getOrSetId(stack), LockItem.getOrSetLength(stack), true);
+	}
 	public static Lock from(ItemStack stack)
 	{
 		return new Lock(LockingItem.getOrSetId(stack), LockItem.getOrSetLength(stack), !LockItem.isOpen(stack));
@@ -35,37 +66,25 @@ public class Lock extends Observable
 
 	public static final String KEY_ID = "Id", KEY_LENGTH = "Length", KEY_LOCKED = "Locked";
 
-	public static Lock fromNbt(CompoundNBT nbt)
+	public static Lock fromNbt(CompoundTag nbt)
 	{
 		return new Lock(nbt.getInt(KEY_ID), nbt.getByte(KEY_LENGTH), nbt.getBoolean(KEY_LOCKED));
 	}
 
-	public static CompoundNBT toNbt(Lock lock)
+	public static CompoundTag toNbt(Lock lock)
 	{
-		CompoundNBT nbt = new CompoundNBT();
-		nbt.putInt(KEY_ID, lock.id);
-		nbt.putByte(KEY_LENGTH, (byte) lock.combo.length);
-		nbt.putBoolean(KEY_LOCKED, lock.locked);
+		CompoundTag nbt = new CompoundTag();
+		nbt.putInt(KEY_ID, lock.lockRecord.id);
+		nbt.putByte(KEY_LENGTH, (byte) lock.lockRecord.combo.size());
+		nbt.putBoolean(KEY_LOCKED, lock.lockRecord.locked);
 		return nbt;
 	}
 
-	public static Lock fromBuf(PacketBuffer buf)
+	public List<Byte> shuffle(int length)
 	{
-		return new Lock(buf.readInt(), (int) buf.readByte(), buf.readBoolean());
-	}
-
-	public static void toBuf(PacketBuffer buf, Lock lock)
-	{
-		buf.writeInt(lock.id);
-		buf.writeByte((int) lock.getLength());
-		buf.writeBoolean(lock.isLocked());
-	}
-
-	public byte[] shuffle(int length)
-	{
-		byte[] combo = new byte[length];
+		List<Byte> combo = new ArrayList<>(length);
 		for(byte a = 0; a < length; ++a)
-			combo[a] = a;
+			combo.add(a);
 		LocksUtil.shuffle(combo, this.rng);
 		return combo;
 	}
@@ -82,26 +101,26 @@ public class Lock extends Observable
 
 	public int getLength()
 	{
-		return this.combo.length;
+		return this.lockRecord.combo.size();
 	}
 
 	public boolean isLocked()
 	{
-		return this.locked;
+		return this.lockRecord.locked;
 	}
 
 	public void setLocked(boolean locked)
 	{
-		if(this.locked == locked)
+		if(this.lockRecord.locked == locked)
 			return;
-		this.locked = locked;
+		this.lockRecord = new LockRecord(this.lockRecord.id, this.lockRecord.combo, locked);
 		this.setChanged();
 		this.notifyObservers();
 	}
 
 	public int getPin(int index)
 	{
-		return this.combo[index];
+		return this.lockRecord.combo.get(index);
 	}
 
 	public boolean checkPin(int index, int pin)

@@ -1,0 +1,24 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern":
+	[
+		" G ",
+		"GLG",
+		"GGG"
+	],
+	"key":
+	{
+		"G":
+		{
+			"tag": "c:ingots/gold"
+		},
+		"L":
+		{
+			"item": "locks:iron_lock_mechanism"
+		}
+	},
+	"result":
+	{
+		"id": "locks:gold_lock"
+	}
+}

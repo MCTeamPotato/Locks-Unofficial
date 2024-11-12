@@ -1,16 +1,17 @@
 package melonslise.locks.client.gui.sprite;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-
 import melonslise.locks.client.util.LocksClientUtil;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public class SpringSprite extends Sprite
 {
 	public final TextureInfo[] texs;
 	public Sprite target;
+	public ResourceLocation resourceLocation;
 
 	public SpringSprite(TextureInfo[] texs, Sprite target)
 	{
@@ -20,11 +21,11 @@ public class SpringSprite extends Sprite
 	}
 
 	@Override
-	public void draw(MatrixStack mtx, float partialTick)
+	public void draw(GuiGraphics mtx, float partialTick, ResourceLocation location)
 	{
 		for(TextureInfo tex : this.texs)
 			if(LocksClientUtil.lerp(this.target.oldPosY, this.target.posY, partialTick) < this.posY + tex.height)
 				this.tex = tex;
-		super.draw(mtx, partialTick);
+		super.draw(mtx, partialTick, location);
 	}
 }

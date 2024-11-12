@@ -1,21 +1,21 @@
 package melonslise.locks.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-
+import melonslise.locks.Locks;
 import melonslise.locks.common.container.KeyRingContainer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
 
-@OnlyIn(Dist.CLIENT)
-public class KeyRingScreen extends ContainerScreen<KeyRingContainer>
+@Environment(EnvType.CLIENT)
+public class KeyRingScreen extends AbstractContainerScreen<KeyRingContainer>
 {
-	public static final ResourceLocation TEXTURE = new ResourceLocation("textures/gui/container/generic_54.png");
+	public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Locks.ID,"textures/gui/container/generic_54.png");
 
-	public KeyRingScreen(KeyRingContainer cont, PlayerInventory inv, ITextComponent title)
+	public KeyRingScreen(KeyRingContainer cont, Inventory inv, Component title)
 	{
 		super(cont, inv, title);
 		this.imageHeight = 114 + cont.rows * 18;
@@ -23,21 +23,21 @@ public class KeyRingScreen extends ContainerScreen<KeyRingContainer>
 	}
 
 	@Override
-	public void render(MatrixStack mtx, int mouseX, int mouseY, float partialTick)
+	public void render(GuiGraphics mtx, int mouseX, int mouseY, float partialTick)
 	{
-		this.renderBackground(mtx);
+		this.renderBackground(mtx,mouseX, mouseY, partialTick);
 		super.render(mtx, mouseX, mouseY, partialTick);
 		this.renderTooltip(mtx, mouseX, mouseY);
 	}
 
 	@Override
-	protected void renderBg(MatrixStack mtx, float partialTick, int mouseX, int mouseY)
+	protected void renderBg(GuiGraphics mtx, float partialTick, int mouseX, int mouseY)
 	{
 		int rows = this.getMenu().rows;
-		this.minecraft.getTextureManager().bind(TEXTURE);
+		//this.minecraft.getTextureManager().bindForSetup(TEXTURE);
 		int cornerX = (this.width - this.imageWidth) / 2;
 		int cornerY = (this.height - this.imageHeight) / 2;
-		this.blit(mtx, cornerX, cornerY, 0, 0, this.imageWidth, rows * 18 + 17);
-		this.blit(mtx, cornerX, cornerY + rows * 18 + 17, 0, 126, this.imageWidth, 96);
+		mtx.blit(TEXTURE, cornerX, cornerY, 0, 0, this.imageWidth, rows * 18 + 17);
+		mtx.blit(TEXTURE, cornerX, cornerY + rows * 18 + 17, 0, 126, this.imageWidth, 96);
 	}
 }

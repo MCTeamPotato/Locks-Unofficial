@@ -1,4 +1,6 @@
 {
+	"language.locks.translation_author": "<Your name here>",
+
 	"itemGroup.locks": "Locks",
 
 	"item.locks.spring": "Spring",

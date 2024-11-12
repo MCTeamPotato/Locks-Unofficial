@@ -1,34 +1,46 @@
 package melonslise.locks.common.init;
 
+import com.mojang.serialization.Codec;
 import melonslise.locks.Locks;
 import melonslise.locks.common.container.KeyRingContainer;
 import melonslise.locks.common.container.LockPickingContainer;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
+
+import java.util.List;
 
 public final class LocksContainerTypes
 {
-	public static final DeferredRegister<ContainerType<?>> CONTAINER_TYPES = DeferredRegister.create(ForgeRegistries.CONTAINERS, Locks.ID);
 
-	public static final RegistryObject<ContainerType<LockPickingContainer>>
-		LOCK_PICKING = add("lock_picking", new ContainerType(LockPickingContainer.FACTORY));
 
-	public static final RegistryObject<ContainerType<KeyRingContainer>>
-		KEY_RING = add("key_ring", new ContainerType(KeyRingContainer.FACTORY));
+	public static final ExtendedScreenHandlerType<LockPickingContainer, List<Integer>>
+			LOCK_PICKING = new ExtendedScreenHandlerType<>(LockPickingContainer.FACTORY,ByteBufCodecs.fromCodec(Codec.list(Codec.INT)));
+
+	public static final ExtendedScreenHandlerType<KeyRingContainer, Integer>
+			KEY_RING = new ExtendedScreenHandlerType<>(KeyRingContainer.FACTORY, ByteBufCodecs.INT);
+
+	public static final MenuType<LockPickingContainer>
+			LOCK_PICKING_TYPE = add("lock_picking", LOCK_PICKING);
+
+	public static final MenuType<KeyRingContainer>
+			KEY_RING_TYPE= add("key_ring", KEY_RING);
 
 	private LocksContainerTypes() {}
 
 	public static void register()
 	{
-		CONTAINER_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());
 	}
 
-	public static <T extends Container> RegistryObject<ContainerType<T>> add(String name, ContainerType<T> type)
+	public static <T extends AbstractContainerMenu> MenuType<T> add(String name, MenuType<T> type)
 	{
-		return CONTAINER_TYPES.register(name, () -> type);
+		return Registry.register(BuiltInRegistries.MENU,ResourceLocation.fromNamespaceAndPath(Locks.ID,name),type);
 	}
 }

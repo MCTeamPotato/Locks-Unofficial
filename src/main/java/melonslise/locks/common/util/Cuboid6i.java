@@ -1,20 +1,46 @@
 package melonslise.locks.common.util;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.world.World;
-
-public class Cuboid6i
+public record Cuboid6i(int x1,int  y1, int z1, int x2, int y2, int z2)
 {
-	public final int x1, y1, z1, x2, y2, z2;
+	public static final Codec<Cuboid6i> CODEC = RecordCodecBuilder.create(cuboid6iInstance ->
+					cuboid6iInstance.group(
+							Codec.INT.fieldOf("x1").forGetter(Cuboid6i::x1),
+							Codec.INT.fieldOf("y1").forGetter(Cuboid6i::y1),
+							Codec.INT.fieldOf("z1").forGetter(Cuboid6i::z1),
+							Codec.INT.fieldOf("x2").forGetter(Cuboid6i::x2),
+							Codec.INT.fieldOf("y2").forGetter(Cuboid6i::y2),
+							Codec.INT.fieldOf("z2").forGetter(Cuboid6i::z2)
+					).apply(cuboid6iInstance, Cuboid6i::new)
+			);
+
+	public static final StreamCodec<ByteBuf,Cuboid6i> STREAM_CODEC = StreamCodec.composite(
+			ByteBufCodecs.INT,Cuboid6i::x1,
+			ByteBufCodecs.INT,Cuboid6i::y1,
+			ByteBufCodecs.INT,Cuboid6i::z1,
+			ByteBufCodecs.INT,Cuboid6i::x2,
+			ByteBufCodecs.INT,Cuboid6i::y2,
+			ByteBufCodecs.INT,Cuboid6i::z2,
+			Cuboid6i::new
+	);
+
+
 
 	public Cuboid6i(int x1, int y1, int z1, int x2, int y2, int z2)
 	{
@@ -28,24 +54,21 @@ public class Cuboid6i
 
 	public Cuboid6i(BlockPos pos1, BlockPos pos2)
 	{
-		this.x1 = Math.min(pos1.getX(), pos2.getX());
-		this.y1 = Math.min(pos1.getY(), pos2.getY());
-		this.z1 = Math.min(pos1.getZ(), pos2.getZ());
-		this.x2 = Math.max(pos1.getX(), pos2.getX()) + 1;
-		this.y2 = Math.max(pos1.getY(), pos2.getY()) + 1;
-		this.z2 = Math.max(pos1.getZ(), pos2.getZ()) + 1;
+		this(Math.min(pos1.getX(), pos2.getX()),Math.min(pos1.getY(), pos2.getY()),
+				Math.min(pos1.getZ(), pos2.getZ()),Math.max(pos1.getX(), pos2.getX()) + 1,
+				Math.max(pos1.getY(), pos2.getY()) + 1,Math.max(pos1.getZ(), pos2.getZ()) + 1);
 	}
 
 	public static final String KEY_X1 = "X1", KEY_Y1 = "Y1", KEY_Z1 = "Z1", KEY_X2 = "X2", KEY_Y2 = "Y2", KEY_Z2 = "Z2";
 
-	public static Cuboid6i fromNbt(CompoundNBT nbt)
+	public static Cuboid6i fromNbt(CompoundTag nbt)
 	{
 		return new Cuboid6i(nbt.getInt(KEY_X1), nbt.getInt(KEY_Y1), nbt.getInt(KEY_Z1), nbt.getInt(KEY_X2), nbt.getInt(KEY_Y2), nbt.getInt(KEY_Z2));
 	}
 
-	public static CompoundNBT toNbt(Cuboid6i bb)
+	public static CompoundTag toNbt(Cuboid6i bb)
 	{
-		CompoundNBT nbt = new CompoundNBT();
+		CompoundTag nbt = new CompoundTag();
 		nbt.putInt(KEY_X1, bb.x1);
 		nbt.putInt(KEY_Y1, bb.y1);
 		nbt.putInt(KEY_Z1, bb.z1);
@@ -55,12 +78,12 @@ public class Cuboid6i
 		return nbt;
 	}
 
-	public static Cuboid6i fromBuf(PacketBuffer buf)
+	public static Cuboid6i fromBuf(FriendlyByteBuf buf)
 	{
 		return new Cuboid6i(buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt());
 	}
 
-	public static void toBuf(PacketBuffer buf, Cuboid6i bb)
+	public static void toBuf(FriendlyByteBuf buf, Cuboid6i bb)
 	{
 		buf.writeInt(bb.x1);
 		buf.writeInt(bb.y1);
@@ -100,11 +123,12 @@ public class Cuboid6i
 		return this.length() * this.height() * this.width();
 	}
 
-	public Vector3d center()
+	public Vec3 center()
 	{
-		return new Vector3d((this.x1 + this.x2) * 0.5d, (this.y1 + this.y2) * 0.5d, (this.z1 + this.z2) * 0.5d);
+		return new Vec3((this.x1 + this.x2) * 0.5d, (this.y1 + this.y2) * 0.5d, (this.z1 + this.z2) * 0.5d);
 	}
 
+	// 检测两个立方体是否重叠
 	public boolean intersects(int x1, int y1, int z1, int x2, int y2, int z2)
 	{
 		return this.x1 < x2 && this.x2 >x1 && this.y1 < y2 && this.y2 > y1 && this.z1 < z2 && this.z2 > z1;
@@ -243,13 +267,13 @@ public class Cuboid6i
 	}
 	*/
 
-	public Vector3d sideCenter(Direction side)
+	public Vec3 sideCenter(Direction side)
 	{
-		Vector3i dir = side.getNormal();
-		return new Vector3d((this.x1 + this.x2 + this.length() * dir.getX()) * 0.5d, (this.y1 + this.y2 + this.height() * dir.getY()) * 0.5d, (this.z1 + this.z2 + this.width() * dir.getZ()) * 0.5d);
+		Vec3i dir = side.getNormal();
+		return new Vec3((this.x1 + this.x2 + this.length() * dir.getX()) * 0.5d, (this.y1 + this.y2 + this.height() * dir.getY()) * 0.5d, (this.z1 + this.z2 + this.width() * dir.getZ()) * 0.5d);
 	}
 
-	public boolean isLoaded(World world)
+	public boolean isLoaded(Level world)
 	{
 		return world.hasChunksAt(this.x1, this.y1, this.z1, this.x2, this.y2, this.z2);
 	}

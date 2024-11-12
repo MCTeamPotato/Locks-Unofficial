@@ -1,43 +1,44 @@
 package melonslise.locks.common.network.toclient;
 
-import java.util.function.Supplier;
-
-import melonslise.locks.common.init.LocksCapabilities;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import melonslise.locks.Locks;
+import melonslise.locks.common.init.LocksComponents;
 import melonslise.locks.common.util.Lockable;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
-public class AddLockablePacket
-{
-	private final Lockable lockable;
+public record AddLockablePacket(Lockable.LockableRecord lockable) implements CustomPacketPayload {
+//    public static final PacketType<AddLockablePacket> TYPE = PacketType.create(ID, AddLockablePacket::new);
 
-	public AddLockablePacket(Lockable lkb)
-	{
-		this.lockable = lkb;
-	}
+    public static final Type<AddLockablePacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Locks.ID, "add_lockable"));
 
-	public static AddLockablePacket decode(PacketBuffer buf)
-	{
-		return new AddLockablePacket(Lockable.fromBuf(buf));
-	}
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
-	public static void encode(AddLockablePacket pkt, PacketBuffer buf)
-	{
-		Lockable.toBuf(buf, pkt.lockable);
-	}
+    public static void handle(AddLockablePacket pkt, LocalPlayer localPlayer) {
+        LocksComponents.LOCKABLE_HANDLER.get(localPlayer.level()).add(new Lockable(pkt.lockable), localPlayer.level());
+    }
 
-	public static void handle(AddLockablePacket pkt, Supplier<NetworkEvent.Context> ctx)
-	{
-		// Use runnable, lambda causes issues with class loading
-		ctx.get().enqueueWork(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				Minecraft.getInstance().level.getCapability(LocksCapabilities.LOCKABLE_HANDLER).ifPresent(handler -> handler.add(pkt.lockable));
-			}
-		});
-		ctx.get().setPacketHandled(true);
-	}
+
+//    public AddLockablePacket(FriendlyByteBuf buf) {
+//        this(Lockable.fromBuf(buf));
+//    }
+
+    public static final Codec<AddLockablePacket> CODEC = RecordCodecBuilder.create(objectInstance ->
+        objectInstance.group(
+                Lockable.CODEC.fieldOf("lockable").forGetter(AddLockablePacket::lockable)
+        ).apply(objectInstance, AddLockablePacket::new)
+    );
+
+    public static final StreamCodec<RegistryFriendlyByteBuf,AddLockablePacket> STREAM_CODEC = StreamCodec.composite(
+            Lockable.STREAM_CODEC,AddLockablePacket::lockable,
+            AddLockablePacket::new
+    );
+
 }

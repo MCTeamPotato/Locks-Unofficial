@@ -1,64 +1,76 @@
 package melonslise.locks.common.init;
 
 import melonslise.locks.Locks;
-import melonslise.locks.common.item.KeyItem;
-import melonslise.locks.common.item.KeyRingItem;
-import melonslise.locks.common.item.LockItem;
-import melonslise.locks.common.item.LockPickItem;
-import melonslise.locks.common.item.MasterKeyItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
+import melonslise.locks.common.item.*;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
-public final class LocksItems
-{
-	public static final ItemGroup TAB = new ItemGroup(Locks.ID)
-	{
-		@OnlyIn(Dist.CLIENT)
-		@Override
-		public ItemStack makeIcon()
-		{
-			return new ItemStack(LocksItems.IRON_LOCK.get());
-		}
-	}.setEnchantmentCategories(LocksEnchantments.LOCK_TYPE);
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
-	public static final DeferredRegister ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Locks.ID);
+public final class LocksItems {
 
-	public static final RegistryObject<Item>
-		SPRING = add("spring", new Item(new Item.Properties().tab(TAB))),
-		WOOD_LOCK_MECHANISM = add("wood_lock_mechanism", new Item(new Item.Properties().tab(TAB))),
-		IRON_LOCK_MECHANISM = add("iron_lock_mechanism", new Item(new Item.Properties().tab(TAB))),
-		STEEL_LOCK_MECHANISM = add("steel_lock_mechanism", new Item(new Item.Properties().tab(TAB))),
-		KEY_BLANK = add("key_blank", new Item(new Item.Properties().tab(TAB))),
-		WOOD_LOCK = add("wood_lock", new LockItem(5, 15, 4, new Item.Properties().tab(TAB))),
-		IRON_LOCK = add("iron_lock", new LockItem(7, 14, 12, new Item.Properties().tab(TAB))),
-		STEEL_LOCK = add("steel_lock", new LockItem(9, 12, 20, new Item.Properties().tab(TAB))),
-		GOLD_LOCK = add("gold_lock", new LockItem(6, 22, 6, new Item.Properties().tab(TAB))),
-		DIAMOND_LOCK = add("diamond_lock", new LockItem(11, 10, 100, new Item.Properties().tab(TAB))),
-		KEY = add("key", new KeyItem(new Item.Properties().tab(TAB))),
-		MASTER_KEY = add("master_key", new MasterKeyItem(new Item.Properties().tab(TAB))),
-		KEY_RING = add("key_ring", new KeyRingItem(1, new Item.Properties().tab(TAB))),
-		WOOD_LOCK_PICK = add("wood_lock_pick", new LockPickItem(0.2f, new Item.Properties().tab(TAB))),
-		IRON_LOCK_PICK = add("iron_lock_pick", new LockPickItem(0.35f, new Item.Properties().tab(TAB))),
-		STEEL_LOCK_PICK = add("steel_lock_pick", new LockPickItem(0.7f, new Item.Properties().tab(TAB))),
-		GOLD_LOCK_PICK = add("gold_lock_pick", new LockPickItem(0.25f, new Item.Properties().tab(TAB))),
-		DIAMOND_LOCK_PICK = add("diamond_lock_pick", new LockPickItem(0.85f, new Item.Properties().tab(TAB)));
+    public static List<Item> items = new ArrayList<>();
 
-	private LocksItems() {}
+    public static final Item
+            SPRING = add("spring", () -> new Item(new Item.Properties())),
+            WOOD_LOCK_MECHANISM = add("wood_lock_mechanism", () -> new Item(new Item.Properties())),
+            IRON_LOCK_MECHANISM = add("iron_lock_mechanism", () -> new Item(new Item.Properties())),
+            STEEL_LOCK_MECHANISM = add("steel_lock_mechanism", () -> new Item(new Item.Properties())),
+            KEY_BLANK = add("key_blank", () -> new Item(new Item.Properties())),
+            WOOD_LOCK = add("wood_lock", () -> new LockItem(5, 15, 4, new Item.Properties())),
+            IRON_LOCK = add("iron_lock", () -> new LockItem(7, 14, 12, new Item.Properties())),
+            STEEL_LOCK = add("steel_lock", () -> new LockItem(9, 12, 20, new Item.Properties())),
+            GOLD_LOCK = add("gold_lock", () -> new LockItem(6, 22, 6, new Item.Properties())),
+            DIAMOND_LOCK = add("diamond_lock", () -> new LockItem(11, 10, 100, new Item.Properties())),
+            KEY = add("key", () -> new KeyItem(new Item.Properties())),
+            MASTER_KEY = add("master_key", () -> new MasterKeyItem(new Item.Properties())),
+            KEY_RING = add("key_ring", () -> new KeyRingItem(1, new Item.Properties())),
+            WOOD_LOCK_PICK = add("wood_lock_pick", () -> new LockPickItem(0.2f, new Item.Properties())),
+            IRON_LOCK_PICK = add("iron_lock_pick", () -> new LockPickItem(0.35f, new Item.Properties())),
+            STEEL_LOCK_PICK = add("steel_lock_pick", () -> new LockPickItem(0.7f, new Item.Properties())),
+            GOLD_LOCK_PICK = add("gold_lock_pick", () -> new LockPickItem(0.25f, new Item.Properties())),
+            DIAMOND_LOCK_PICK = add("diamond_lock_pick", () -> new LockPickItem(0.85f, new Item.Properties()));
 
-	public static void register()
-	{
-		ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
-	}
+    public static final List<Holder<Item>> HOLDERS = List.of(
+            Holder.direct(KEY_BLANK),
+            Holder.direct(WOOD_LOCK),
+            Holder.direct(IRON_LOCK),
+            Holder.direct(STEEL_LOCK),
+            Holder.direct(GOLD_LOCK),
+            Holder.direct(DIAMOND_LOCK));
 
-	public static RegistryObject<Item> add(String name, Item item)
-	{
-		return ITEMS.register(name, () -> item);
-	}
+
+    public static void register() {
+    }
+
+    public static Item add(String resourceLocation, Supplier<Item> itemSupplier) {
+        Item register = Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(Locks.ID, resourceLocation), itemSupplier.get());
+        items.add(register);
+        return register;
+    }
+
+    public static final CreativeModeTab TABS = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, Locks.ID, CreativeModeTab
+            .builder(CreativeModeTab.Row.TOP, 9)
+            .icon(() -> new ItemStack(LocksItems.IRON_LOCK))
+            .title(Component.translatable("itemGroup.locks"))
+            .displayItems((parameters, output) -> {
+//                for (Enchantment enchantmentRegistryObject : LocksEnchantments.ENCHANTMENTS.getEntries()) {
+//                    Enchantment enchantment = enchantmentRegistryObject;
+//                    ItemStack enchantedBook = new ItemStack(Items.ENCHANTED_BOOK);
+//                    enchantedBook.enchant(enchantment, enchantment.getMaxLevel());
+//                    output.accept(enchantedBook);
+//                }
+                for (Item itemRegistryObject : items) {
+                    output.accept(itemRegistryObject);
+                }
+            })
+            .build());
 }

@@ -1,48 +1,46 @@
 package melonslise.locks.common.network.toclient;
 
-import java.util.function.Supplier;
-
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
+import melonslise.locks.Locks;
 import melonslise.locks.common.container.LockPickingContainer;
 import melonslise.locks.common.init.LocksContainerTypes;
-import net.minecraft.client.Minecraft;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 
-public class TryPinResultPacket
-{
-	private final boolean correct, reset;
+public record TryPinResultPacket(boolean correct,boolean reset) implements CustomPacketPayload {
 
-	public TryPinResultPacket(boolean correct, boolean reset)
-	{
-		this.correct = correct;
-		this.reset = reset;
+	public static final Type<TryPinResultPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Locks.ID, "try_pin_result"));
+
+
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 
-	public static TryPinResultPacket decode(PacketBuffer buf)
-	{
-		return new TryPinResultPacket(buf.readBoolean(), buf.readBoolean());
+	public static void handle(TryPinResultPacket pkt, LocalPlayer localPlayer) {
+		AbstractContainerMenu container = localPlayer.containerMenu;
+		if (container.getType() == LocksContainerTypes.LOCK_PICKING)
+			((LockPickingContainer) container).handlePin(pkt.correct, pkt.reset);
 	}
 
-	public static void encode(TryPinResultPacket pkt, PacketBuffer buf)
-	{
-		buf.writeBoolean(pkt.correct);
-		buf.writeBoolean(pkt.reset);
-	}
+	public static final Codec<TryPinResultPacket> CODEC = RecordCodecBuilder.create(
+			instance -> instance.group(
+					Codec.BOOL.fieldOf("correct").forGetter(TryPinResultPacket::correct),
+					Codec.BOOL.fieldOf("reset").forGetter(TryPinResultPacket::reset)
+			).apply(instance, TryPinResultPacket::new)
+	);
 
-	public static void handle(TryPinResultPacket pkt, Supplier<NetworkEvent.Context> ctx)
-	{
-		// Use runnable, lambda causes issues with class loading
-		ctx.get().enqueueWork(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				Container container = Minecraft.getInstance().player.containerMenu;
-				if(container.getType() == LocksContainerTypes.LOCK_PICKING.get())
-					((LockPickingContainer) container).handlePin(pkt.correct, pkt.reset);
-			}
-		});
-		ctx.get().setPacketHandled(true);
-	}
+	public static final StreamCodec<ByteBuf,TryPinResultPacket> STREAM_CODEC = StreamCodec.composite(
+			ByteBufCodecs.BOOL,TryPinResultPacket::correct,
+			ByteBufCodecs.BOOL,TryPinResultPacket::reset,
+			TryPinResultPacket::new
+	);
+
+
 }

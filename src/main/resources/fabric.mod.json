@@ -1,0 +1,56 @@
+{
+	"schemaVersion": 1,
+	"id": "locks",
+	"version": "${version}",
+	"name": "Locks",
+	"description": "Locks is a small, but unique Minecraft mod that introduces flexible and universal locks which can be dynamically attached to multiple blocks of any kind, including other mods, a fun lock picking mechanic as well as lots of other little, but useful tools and utilities.",
+	"authors": [
+		"Melonslise", "Kaleb Langley", "Yuqi154"
+	],
+	"icon": "icon.png",
+	"accessWidener" : "locks.accesswidener",
+	"contact": {
+		"homepage": "https://www.curseforge.com/minecraft/mc-mods/locks-unoffical",
+		"sources": "https://github.com/MCTeamPotato/Locks-Unoffical"
+	},
+	"license": "CC-BY-NC-3.0",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"melonslise.locks.Locks"
+		],
+		"client": [
+			"melonslise.locks.LocksClient"
+		],
+		"cardinal-components": [
+			"melonslise.locks.common.init.LocksComponents"
+		]
+	},
+	"mixins": [
+      "locks.mixins.json",
+		"locks.mixins.compact.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.14.21",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*",
+		"forgeconfigapiport": ">=21",
+		"cardinal-components-base": ">=6.1.1",
+		"cardinal-components-item": ">=6.1.1",
+		"cardinal-components-entity": ">=6.1.1",
+		"cardinal-components-world": ">=6.1.1",
+		"cardinal-components-chunk": ">=6.1.1"
+	},
+	"suggests": {
+		"jei": ">15.17.0.0"
+	},
+	"custom": {
+		"cardinal-components": [
+			"locks:lockable_handler",
+			"locks:lockable_storage",
+			"locks:selection",
+			"locks:item_handler"
+		]
+	}
+}

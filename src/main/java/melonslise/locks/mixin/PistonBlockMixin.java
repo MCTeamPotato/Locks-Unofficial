@@ -1,25 +1,24 @@
 package melonslise.locks.mixin;
 
+import melonslise.locks.common.util.LocksUtil;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.piston.PistonBaseBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import melonslise.locks.common.util.LocksUtil;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.PistonBlock;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-
-@Mixin(PistonBlock.class)
+@Mixin(PistonBaseBlock.class)
 public class PistonBlockMixin
 {
 	// Before getPistonPushReaction call
-	@Inject(at = @At(value = "INVOKE", target = "net/minecraft/block/BlockState.getPistonPushReaction()Lnet/minecraft/block/material/PushReaction;", ordinal = 0), method = "isPushable(Lnet/minecraft/block/BlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/Direction;ZLnet/minecraft/util/Direction;)Z", cancellable = true)
-	private static void isPushable(BlockState state, World world, BlockPos pos, Direction dir, boolean flag, Direction dir1, CallbackInfoReturnable<Boolean> cir)
+	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getPistonPushReaction()Lnet/minecraft/world/level/material/PushReaction;"), method = "isPushable", cancellable = true)
+	private static void isPushable(BlockState state, Level world, BlockPos pos, Direction dir, boolean flag, Direction dir1, CallbackInfoReturnable<Boolean> cir)
 	{
-		if(LocksUtil.locked(world, pos))
+		if(LocksUtil.lockedAndRelated(world, pos))
 			cir.setReturnValue(false);
 	}
 }

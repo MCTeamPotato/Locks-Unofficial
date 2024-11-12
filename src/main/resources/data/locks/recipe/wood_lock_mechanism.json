@@ -1,0 +1,28 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern":
+	[
+		"SSS",
+		"TTT",
+		"WWW"
+	],
+	"key":
+	{
+		"S":
+		{
+			"tag": "c:string"
+		},
+		"T":
+		{
+			"item": "minecraft:stick"
+		},
+		"W":
+		{
+			"tag": "minecraft:planks"
+		}
+	},
+	"result":
+	{
+		"id": "locks:wood_lock_mechanism"
+	}
+}

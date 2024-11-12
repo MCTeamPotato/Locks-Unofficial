@@ -1,36 +1,36 @@
 {
-	"required": true,
-	"package": "melonslise.locks.mixin",
-	"compatibilityLevel": "JAVA_8",
-	"refmap": "locks.refmap.json",
-	"mixins":
-	[
-		"AbstractFurnaceTileEntityMixin",
-		"ChestBlockMixin",
-		"ChestTileEntityMixin",
-		"ChunkManagerMixin",
-		"ChunkMixin",
-		"ChunkPrimerMixin",
-		"ExplosionContextMixin",
-		"ForgeHooksAccessor",
-		"HopperTileEntityMixin",
-		"LockableTileEntityMixin",
-		"LootPoolAccessor",
-		"LootTableAccessor",
-		"LootTableManagerMixin",
-		"PistonBlockMixin",
-		"PistonBlockStructureHelperMixin",
-		"ServerWorldMixin",
-		"TemplateMixin",
-		"WorldMixin"
-	],
-	"client":
-	[
-		"client.WorldRendererMixin"
-	],
-	"injectors":
-	{
-		"defaultRequire": 1
-	},
-	"minVersion": "0.8"
+  "required": true,
+  "package": "melonslise.locks.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "locks.refmap.json",
+  "mixins": [
+    "BaseContainerBlockEntityMixin",
+    "ChestBlockMixin",
+    "ChunkManagerMixin",
+    "ChunkMixin",
+    "ChunkPrimerMixin",
+    "DoorMixin",
+    "ExplosionContextMixin",
+    "HopperTileEntityMixin",
+    "PistonBlockMixin",
+    "PistonBlockStructureHelperMixin",
+    "PlayerTickMixin",
+    "ServerWorldMixin",
+    "WorldMixin",
+    "accessor.LootPoolAccessor",
+    "accessor.LootTableAccessor",
+    "addlock.StructurePieceMixin",
+    "addlock.StructureTemplateMixin",
+    "addlock.WorldGenRegionMixin"
+  ],
+  "client": [
+    "ChunkCacheMixin",
+    "client.ClientTickMixin",
+    "client.GuiMixin",
+    "client.WorldRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
 }

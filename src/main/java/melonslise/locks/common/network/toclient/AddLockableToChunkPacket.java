@@ -1,74 +1,76 @@
 package melonslise.locks.common.network.toclient;
 
-import java.util.function.Supplier;
-
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import melonslise.locks.common.capability.ILockableHandler;
-import melonslise.locks.common.capability.ILockableStorage;
-import melonslise.locks.common.init.LocksCapabilities;
+import melonslise.locks.Locks;
+import melonslise.locks.common.components.interfaces.ILockableHandler;
+import melonslise.locks.common.components.interfaces.ILockableStorage;
+import melonslise.locks.common.init.LocksComponents;
 import melonslise.locks.common.util.Lockable;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.EmptyLevelChunk;
+import net.minecraft.world.level.chunk.LevelChunk;
 
-public class AddLockableToChunkPacket
-{
-	private final Lockable lockable;
-	private final int x, z;
+public record AddLockableToChunkPacket(Lockable.LockableRecord lockable,int x,int z) implements CustomPacketPayload {
+    
 
-	public AddLockableToChunkPacket(Lockable lkb, int x, int z)
-	{
-		this.lockable = lkb;
-		this.x = x;
-		this.z = z;
-	}
 
-	public AddLockableToChunkPacket(Lockable lkb, ChunkPos pos)
-	{
-		this(lkb, pos.x, pos.z);
-	}
+    public static final Type<AddLockableToChunkPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Locks.ID, "add_lockable2chunk"));
 
-	public AddLockableToChunkPacket(Lockable lkb, Chunk ch)
-	{
-		this(lkb, ch.getPos());
-	}
+    public static void handle(AddLockableToChunkPacket pkt, LocalPlayer localPlayer) {
+        Level level = localPlayer.level();
+        if (level.getChunk(pkt.x, pkt.z) instanceof EmptyLevelChunk) return;
+        ILockableStorage st = LocksComponents.LOCKABLE_STORAGE.get(level.getChunk(pkt.x, pkt.z));
+        ILockableHandler handler = LocksComponents.LOCKABLE_HANDLER.get(level);
+        Int2ObjectMap<Lockable> lkbs = handler.getLoaded();
+        Lockable lkb = lkbs.get(pkt.lockable.id());
+        if (lkb == lkbs.defaultReturnValue()) {
+            lkb = new Lockable(pkt.lockable);
+            lkb.addObserver(handler);
+            lkbs.put(lkb.id, lkb);
+        }
+        st.add(lkb);
+    }
 
-	public static AddLockableToChunkPacket decode(PacketBuffer buf)
-	{
-		return new AddLockableToChunkPacket(Lockable.fromBuf(buf), buf.readInt(), buf.readInt());
-	}
 
-	public static void encode(AddLockableToChunkPacket pkt, PacketBuffer buf)
-	{
-		Lockable.toBuf(buf, pkt.lockable);
-		buf.writeInt(pkt.x);
-		buf.writeInt(pkt.z);
-	}
+    public static final Codec<AddLockableToChunkPacket> CODEC = RecordCodecBuilder.create(objectInstance ->
+            objectInstance.group(
+                    Lockable.CODEC.fieldOf("lockable").forGetter(AddLockableToChunkPacket::lockable),
+                    Codec.INT.fieldOf("x").forGetter(AddLockableToChunkPacket::x),
+                    Codec.INT.fieldOf("z").forGetter(AddLockableToChunkPacket::z)
+            ).apply(objectInstance, AddLockableToChunkPacket::new)
+    );
 
-	public static void handle(AddLockableToChunkPacket pkt, Supplier<NetworkEvent.Context> ctx)
-	{
-		// Use runnable, lambda causes issues with class loading
-		ctx.get().enqueueWork(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				Minecraft mc = Minecraft.getInstance();
-				ILockableStorage st = mc.level.getChunk(pkt.x, pkt.z).getCapability(LocksCapabilities.LOCKABLE_STORAGE).orElse(null);
-				ILockableHandler handler = mc.level.getCapability(LocksCapabilities.LOCKABLE_HANDLER).orElse(null);
-				Int2ObjectMap<Lockable> lkbs = handler.getLoaded();
-				Lockable lkb = lkbs.get(pkt.lockable.id);
-				if(lkb == lkbs.defaultReturnValue())
-				{
-					lkb = pkt.lockable;
-					lkb.addObserver(handler);
-					lkbs.put(lkb.id, lkb);
-				}
-				st.add(lkb);
-			}
-		});
-		ctx.get().setPacketHandled(true);
-	}
+    public static final StreamCodec<RegistryFriendlyByteBuf,AddLockableToChunkPacket> STREAM_CODEC = StreamCodec.composite(
+            Lockable.STREAM_CODEC,AddLockableToChunkPacket::lockable,
+            ByteBufCodecs.INT,AddLockableToChunkPacket::x,
+            ByteBufCodecs.INT,AddLockableToChunkPacket::z,
+            AddLockableToChunkPacket::new
+    );
+
+    public AddLockableToChunkPacket(Lockable lkb, int x, int z) {
+        this(lkb.toRecord(),x,z);
+    }
+
+    public AddLockableToChunkPacket(Lockable lkb, ChunkPos pos) {
+        this(lkb, pos.x, pos.z);
+    }
+
+    public AddLockableToChunkPacket(Lockable lkb, LevelChunk ch) {
+        this(lkb, ch.getPos());
+    }
+
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 }

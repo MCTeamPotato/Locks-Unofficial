@@ -1,11 +1,10 @@
 package melonslise.locks.common.util;
 
-import java.util.HashMap;
-
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.properties.AttachFace;
 import org.apache.commons.lang3.tuple.Pair;
 
-import net.minecraft.state.properties.AttachFace;
-import net.minecraft.util.Direction;
+import java.util.HashMap;
 
 public enum Transform
 {

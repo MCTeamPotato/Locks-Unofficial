@@ -1,52 +1,46 @@
 package melonslise.locks.common.network.toclient;
 
-import java.util.function.Supplier;
-
-import melonslise.locks.common.init.LocksCapabilities;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
+import melonslise.locks.Locks;
+import melonslise.locks.common.init.LocksComponents;
 import melonslise.locks.common.util.Lockable;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
-public class UpdateLockablePacket
-{
-	private final int id;
-	// Expandable
-	private final boolean locked;
+public record UpdateLockablePacket(int id ,boolean locked) implements CustomPacketPayload {
+    public static final Type<UpdateLockablePacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Locks.ID, "update_lockable"));
 
-	public UpdateLockablePacket(int id, boolean locked)
-	{
-		this.id = id;
-		this.locked = locked;
-	}
 
-	public UpdateLockablePacket(Lockable lkb)
-	{
-		this(lkb.id, lkb.lock.isLocked());
-	}
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
-	public static UpdateLockablePacket decode(PacketBuffer buf)
-	{
-		return new UpdateLockablePacket(buf.readInt(), buf.readBoolean());
-	}
+    public static void handle(UpdateLockablePacket pkt, LocalPlayer localPlayer) {
+        LocksComponents.LOCKABLE_HANDLER.get(localPlayer.level()).getLoaded().get(pkt.id).lock.setLocked(pkt.locked);
+    }
 
-	public static void encode(UpdateLockablePacket pkt, PacketBuffer buf)
-	{
-		buf.writeInt(pkt.id);
-		buf.writeBoolean(pkt.locked);
-	}
+    public UpdateLockablePacket(Lockable lkb) {
+        this(lkb.id, lkb.lock.isLocked());
+    }
 
-	public static void handle(UpdateLockablePacket pkt, Supplier<NetworkEvent.Context> ctx)
-	{
-		// Use runnable, lambda causes issues with class loading
-		ctx.get().enqueueWork(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				Minecraft.getInstance().level.getCapability(LocksCapabilities.LOCKABLE_HANDLER).ifPresent(handler -> handler.getLoaded().get(pkt.id).lock.setLocked(pkt.locked));
-			}
-		});
-		ctx.get().setPacketHandled(true);
-	}
+    public static final Codec<UpdateLockablePacket> CODEC = RecordCodecBuilder.create(
+            instance -> instance.group(
+                    Codec.INT.fieldOf("id").forGetter(UpdateLockablePacket::id),
+                    Codec.BOOL.fieldOf("locked").forGetter(UpdateLockablePacket::locked)
+            ).apply(instance, UpdateLockablePacket::new)
+    );
+
+    public static final StreamCodec<ByteBuf,UpdateLockablePacket> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.INT,UpdateLockablePacket::id,
+            ByteBufCodecs.BOOL,UpdateLockablePacket::locked,
+            UpdateLockablePacket::new
+    );
+
+
 }

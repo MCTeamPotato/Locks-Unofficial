@@ -1,0 +1,21 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern":
+	[
+		" GG",
+		" G ",
+		"G  "
+	],
+	"key":
+	{
+		"G":
+		{
+			"tag": "c:ingots/gold"
+		}
+	},
+	"result":
+	{
+		"id": "locks:gold_lock_pick",
+		"count": 2
+	}
+}

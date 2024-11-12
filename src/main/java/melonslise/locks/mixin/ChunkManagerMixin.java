@@ -1,26 +1,33 @@
 package melonslise.locks.mixin;
 
+import melonslise.locks.common.init.LocksComponents;
+import melonslise.locks.common.network.toclient.AddLockableToChunkPacket;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.server.level.ChunkMap;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import melonslise.locks.common.init.LocksCapabilities;
-import melonslise.locks.common.init.LocksNetwork;
-import melonslise.locks.common.network.toclient.AddLockableToChunkPacket;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.IPacket;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.server.ChunkManager;
-import net.minecraftforge.fml.network.PacketDistributor;
+import java.util.Iterator;
 
-@Mixin(ChunkManager.class)
+@Mixin(ChunkMap.class)
 public class ChunkManagerMixin
 {
-	@Inject(at = @At("TAIL"), method = "playerLoadedChunk(Lnet/minecraft/entity/player/ServerPlayerEntity;[Lnet/minecraft/network/IPacket;Lnet/minecraft/world/chunk/Chunk;)V")
-	private void playerLoadedChunk(ServerPlayerEntity player, IPacket<?>[] pkts, Chunk ch, CallbackInfo ci)
+	@Inject(at = @At("TAIL"), method = "onChunkReadyToSend(Lnet/minecraft/world/level/chunk/LevelChunk;)V")
+	private void playerLoadedChunk(LevelChunk levelChunk, CallbackInfo ci)
 	{
-		ch.getCapability(LocksCapabilities.LOCKABLE_STORAGE).orElse(null).get().values()
-			.forEach(lkb -> LocksNetwork.MAIN.send(PacketDistributor.TRACKING_CHUNK.with(() -> ch), new AddLockableToChunkPacket(lkb, ch)));
+		ChunkPos chunkPos = levelChunk.getPos();
+		Iterator<ServerPlayer> var3 = ((ChunkMap)(Object)this).playerMap.getAllPlayers().iterator();
+		var3.forEachRemaining(player ->
+				LocksComponents.LOCKABLE_STORAGE.get(levelChunk).get().values()
+				.forEach(lkb -> ServerPlayNetworking.send(player, new AddLockableToChunkPacket(lkb, levelChunk)))
+		);
+
+//		LocksComponents.LOCKABLE_STORAGE.get(ch).get().values()
+//				.forEach(lkb -> AddLockableToChunkPacket.execute(new AddLockableToChunkPacket(lkb, ch), player.level()));
 	}
 }
