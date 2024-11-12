@@ -14,11 +14,11 @@
 		},
 		"N":
 		{
-			"tag": "forge:nuggets/steel"
+			"tag": "c:nuggets/steel"
 		},
 		"I":
 		{
-			"tag": "forge:ingots/steel"
+			"tag": "c:ingots/steel"
 		}
 	},
 	"result":

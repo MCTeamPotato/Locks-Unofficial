@@ -98,7 +98,9 @@ public final class LocksEvents
 				return InteractionResult.PASS;
 			if(world.isClientSide && LocksClientConfig.DEAF_MODE.get())
 				player.displayClientMessage(LOCKED_MESSAGE, true);
-
+			if(player.isShiftKeyDown()&&( item == LocksItems.MASTER_KEY || (stack.is(LocksItemTags.KEYS) && LockingItem.getOrSetId(stack) == lkb.lock.id) ||(item == LocksItems.KEY_RING && KeyRingItem.containsId(stack, lkb.lock.id)))) {
+				return InteractionResult.PASS;
+			}
 			if(f) {
 				player.openMenu(new LockPickingContainer.Provider(hand, lkb));
 				return InteractionResult.CONSUME;
@@ -113,13 +115,16 @@ public final class LocksEvents
 				return InteractionResult.PASS;
 			world.playSound(player, pos, SoundEvents.IRON_DOOR_OPEN, SoundSource.BLOCKS, 0.8f, 0.8f + world.random.nextFloat() * 0.4f);
 			player.swing(InteractionHand.MAIN_HAND);
-			if(!world.isClientSide)
-				for(Lockable lkb : match)
-				{
+			if(player instanceof ServerPlayer) {
+				Locks.LOGGER.info("Removing lockable");
+				for (Lockable lkb : match) {
 					world.addFreshEntity(new ItemEntity(world, pos.getX() + 0.5d, pos.getY() + 0.5d, pos.getZ() + 0.5d, lkb.stack));
 					handler.remove(lkb.id);
 				}
-			return InteractionResult.FAIL;
+				return InteractionResult.CONSUME;
+			}else {
+				return InteractionResult.PASS;
+			}
 		}
 		return InteractionResult.PASS;
 	}
