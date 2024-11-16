@@ -52,7 +52,7 @@ public class LockableHandler implements ILockableHandler {
     @Override
     public Int2ObjectMap<Lockable> getInChunk(BlockPos pos)
     {
-        return this.world.hasChunkAt(pos) ? LocksComponents.LOCKABLE_STORAGE.get(this.world.getChunkAt(pos)).get(): null;
+        return this.world.hasChunkAt(pos) ? LocksComponents.LOCKABLE_STORAGE.get(this.world.getChunkAt(pos)).get(): new Int2ObjectLinkedOpenHashMap<Lockable>();
     }
 
     @Override

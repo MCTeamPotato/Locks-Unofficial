@@ -20,4 +20,4 @@ accessible method net/minecraft/client/multiplayer/ClientChunkCache$Storage inRa
 accessible method net/minecraft/client/multiplayer/ClientChunkCache$Storage getChunk (I)Lnet/minecraft/world/level/chunk/LevelChunk;
 accessible field net/minecraft/server/players/PlayerList players Ljava/util/List;
 accessible method net/minecraft/world/level/block/entity/RandomizableContainerBlockEntity getItems ()Lnet/minecraft/core/NonNullList;
-
+accessible method net/minecraft/client/renderer/LevelRenderer checkPoseStack (Lcom/mojang/blaze3d/vertex/PoseStack;)V
