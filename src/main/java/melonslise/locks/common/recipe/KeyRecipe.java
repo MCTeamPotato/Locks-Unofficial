@@ -5,10 +5,7 @@ import melonslise.locks.common.init.LocksRecipeSerializers;
 import melonslise.locks.common.item.LockingItem;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -35,12 +32,12 @@ public class KeyRecipe extends CustomRecipe
 		boolean hasLocking = false;
 		int blanks = 0;
 
-		for(int a = 0; a < recipeInput.ingredientCount(); ++a)
+		for(int a = 0; a < recipeInput.size(); ++a)
 		{
 			ItemStack stack = recipeInput.getItem(a);
 			if(stack.isEmpty())
 				continue;
-			if(stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(LockingItem.KEY_ID))
+			if(stack.getItem() instanceof LockingItem && stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(LockingItem.KEY_ID))
 			{
 				if(hasLocking)
 					return false;
@@ -58,12 +55,12 @@ public class KeyRecipe extends CustomRecipe
 		ItemStack locking = ItemStack.EMPTY;
 		int blanks = 0;
 
-		for (int a = 0; a < recipeInput.ingredientCount(); ++a)
+		for (int a = 0; a < recipeInput.size(); ++a)
 		{
 			ItemStack stack = recipeInput.getItem(a);
 			if (stack.isEmpty())
 				continue;
-			if (stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(LockingItem.KEY_ID))
+			if (stack.getItem() instanceof LockingItem && stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(LockingItem.KEY_ID))
 			{
 				if (!locking.isEmpty())
 					return ItemStack.EMPTY;
@@ -76,19 +73,19 @@ public class KeyRecipe extends CustomRecipe
 		}
 
 		if(!locking.isEmpty() && blanks >= 1)
-			return LockingItem.copyId(locking, new ItemStack(LocksItems.KEY));
+			return LockingItem.copyId(locking, new ItemStack(LocksItems.KEY, blanks));
 		return ItemStack.EMPTY;
 	}
 
 	@Override
 	public NonNullList<ItemStack> getRemainingItems(CraftingInput inv)
 	{
-		NonNullList<ItemStack> list = NonNullList.withSize(inv.ingredientCount(), ItemStack.EMPTY);
+		NonNullList<ItemStack> list = NonNullList.withSize(inv.size(), ItemStack.EMPTY);
 
 		for (int a = 0; a < list.size(); ++a)
 		{
 			ItemStack stack = inv.getItem(a);
-			if(!stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(LockingItem.KEY_ID))
+			if(!(stack.getItem() instanceof LockingItem  && stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(LockingItem.KEY_ID)))
 				continue;
 			list.set(a, stack.copy());
 			break;
