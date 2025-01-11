@@ -63,7 +63,7 @@ public class LockableStorage implements ILockableStorage
 		if(this.chunk instanceof LevelChunk levelChunk){
 			handler =LocksComponents.LOCKABLE_HANDLER.get(levelChunk.getLevel());
 		}else {
-			handler =LocksComponents.LOCKABLE_HANDLER.get(Minecraft.getInstance().level);
+			return;
 		}
 		Int2ObjectMap<Lockable> lkbs = handler.getLoaded();
 		for(int a = 0; a < lockables.size(); ++a)
