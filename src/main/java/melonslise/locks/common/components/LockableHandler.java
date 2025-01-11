@@ -16,6 +16,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -133,7 +134,7 @@ public class LockableHandler implements ILockableHandler {
     public void readFromNbt(CompoundTag compoundTag, HolderLookup.Provider provider) {
         this.lastId.set(compoundTag.getInt("last_id"));
         int size = compoundTag.getInt("LockablesSize");
-        ListTag lockables = compoundTag.getList("Lockables",size);
+        ListTag lockables = compoundTag.getList("Lockables", Tag.TAG_COMPOUND);
         for(int a = 0; a < lockables.size(); ++a)
         {
             CompoundTag nbt1 = lockables.getCompound(a);

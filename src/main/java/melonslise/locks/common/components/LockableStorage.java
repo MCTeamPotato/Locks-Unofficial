@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -58,7 +59,7 @@ public class LockableStorage implements ILockableStorage
 	@Override
 	public void readFromNbt(CompoundTag nbt, HolderLookup.Provider provider) {
 		int size = nbt.getInt("LockablesSize");
-		ListTag lockables = nbt.getList("Lockables",size);
+		ListTag lockables = nbt.getList("Lockables", Tag.TAG_COMPOUND);
 		ILockableHandler handler;
 		if(this.chunk instanceof LevelChunk levelChunk){
 			handler =LocksComponents.LOCKABLE_HANDLER.get(levelChunk.getLevel());
