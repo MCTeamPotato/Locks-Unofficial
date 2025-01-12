@@ -7,7 +7,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -30,16 +29,29 @@ public class LockingItem extends Item
 
 	public static ItemStack copyId(ItemStack from, ItemStack to)
 	{
-		to.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).getUnsafe().putInt(KEY_ID, getOrSetId(from));
+		int copiedId = getOrSetId(from);
+
+		to.update(DataComponents.CUSTOM_DATA, CustomData.EMPTY, comp -> comp.update(currentNbt ->
+			currentNbt.putInt(KEY_ID, copiedId)
+		));
+
 		return to;
 	}
 
 	public static int getOrSetId(ItemStack stack)
 	{
-		CompoundTag nbt = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).getUnsafe();
-		if(!nbt.contains(KEY_ID))
-			nbt.putInt(KEY_ID, ThreadLocalRandom.current().nextInt());
-		return nbt.getInt(KEY_ID);
+		@Nullable var data = stack.get(DataComponents.CUSTOM_DATA);
+
+		if (data == null || !data.contains(KEY_ID)){
+			CompoundTag idTag = new CompoundTag();
+			int randId = ThreadLocalRandom.current().nextInt();
+			idTag.putInt(KEY_ID, randId);
+			CustomData customData = CustomData.of(idTag);
+			stack.set(DataComponents.CUSTOM_DATA, customData);
+			return randId;
+		}
+
+		return data.copyTag().getInt(KEY_ID);
 	}
 
 	@Override
