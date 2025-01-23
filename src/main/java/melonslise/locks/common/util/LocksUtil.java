@@ -166,6 +166,7 @@ public final class LocksUtil {
     }
 
     public static boolean locked(Level world, BlockPos pos) {
+        if (pos == null) return false;
         return intersecting(world, pos).anyMatch(LocksPredicates.LOCKED);
     }
 
