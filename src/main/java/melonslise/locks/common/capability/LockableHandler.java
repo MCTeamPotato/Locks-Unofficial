@@ -2,6 +2,7 @@ package melonslise.locks.common.capability;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import melonslise.locks.Locks;
 import melonslise.locks.common.config.LocksServerConfig;
 import melonslise.locks.common.init.LocksCapabilities;
@@ -36,7 +37,7 @@ public class LockableHandler implements ILockableHandler
 
 	public AtomicInteger lastId = new AtomicInteger();
 
-	public Int2ObjectMap<Lockable> lockables = new Int2ObjectLinkedOpenHashMap<Lockable>();
+	public Int2ObjectMap<Lockable> lockables = new Int2ObjectLinkedOpenHashMap<>();
 
 	public LockableHandler(Level world)
 	{
@@ -57,7 +58,7 @@ public class LockableHandler implements ILockableHandler
 	@Override
 	public Int2ObjectMap<Lockable> getInChunk(BlockPos pos)
 	{
-		return this.world.hasChunkAt(pos) ? this.world.getChunkAt(pos).getCapability(LocksCapabilities.LOCKABLE_STORAGE).orElse(null).get() : null;
+		return this.world.hasChunkAt(pos) ? this.world.getChunkAt(pos).getCapability(LocksCapabilities.LOCKABLE_STORAGE).orElse(null).get() : Int2ObjectMaps.emptyMap();
 	}
 
 	@Override

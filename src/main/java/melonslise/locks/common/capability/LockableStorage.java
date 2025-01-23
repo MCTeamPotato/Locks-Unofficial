@@ -21,7 +21,7 @@ public class LockableStorage implements ILockableStorage {
 
     public final LevelChunk chunk;
 
-    public Int2ObjectMap<Lockable> lockables = new Int2ObjectLinkedOpenHashMap<Lockable>();
+    public Int2ObjectMap<Lockable> lockables = new Int2ObjectLinkedOpenHashMap<>();
 
     public LockableStorage(LevelChunk chunk) {
         this.chunk = chunk;

@@ -88,16 +88,12 @@ public final class LocksUtil {
         }
         int x1 = settings.getRotationPivot().getX();
         int z1 = settings.getRotationPivot().getZ();
-        switch (settings.getRotation()) {
-            case COUNTERCLOCKWISE_90:
-                return new BlockPos(x1 - z1 + z, y, x1 + z1 - x + 1);
-            case CLOCKWISE_90:
-                return new BlockPos(x1 + z1 - z + 1, y, z1 - x1 + x);
-            case CLOCKWISE_180:
-                return new BlockPos(x1 + x1 - x + 1, y, z1 + z1 - z + 1);
-            default:
-                return new BlockPos(x, y, z);
-        }
+        return switch (settings.getRotation()) {
+            case COUNTERCLOCKWISE_90 -> new BlockPos(x1 - z1 + z, y, x1 + z1 - x + 1);
+            case CLOCKWISE_90 -> new BlockPos(x1 + z1 - z + 1, y, z1 - x1 + x);
+            case CLOCKWISE_180 -> new BlockPos(x1 + x1 - x + 1, y, z1 + z1 - z + 1);
+            default -> new BlockPos(x, y, z);
+        };
     }
 
     public static AttachFace faceFromDir(Direction dir) {
@@ -166,7 +162,6 @@ public final class LocksUtil {
     }
 
     public static boolean locked(Level world, BlockPos pos) {
-        if (pos == null) return false;
         return intersecting(world, pos).anyMatch(LocksPredicates.LOCKED);
     }
 
